@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { markRaw, onMounted, watch } from 'vue'
+import { markRaw, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import useApplicationStore from '../../stores/index'
 import useModal from '../../composables/useModal'
@@ -10,6 +10,8 @@ const modal = useModal()
 const appStore = useApplicationStore()
 const { modalEmitValue } = storeToRefs(modal)
 const { guilds } = storeToRefs(appStore)
+const showContextDelete = ref(false)
+const deleteGuildId = ref(0)
 const getGuilds = async() => {
     const response = await fetch('https://localhost:7266/api/guilds', {
         headers: {
@@ -32,6 +34,8 @@ watch(modalEmitValue, async _ => {
 onMounted(async() =>{
     await getGuilds()
 })
+
+const elementTopPosition = ref(0)
 
 async function getChannels() {
     const guildId = appStore.selectedGuild
@@ -56,6 +60,29 @@ async function selectGuild(id: number) {
     appStore.setGuildId(id)
     await getChannels()
 }
+
+function onMouseLeave() {
+    showContextDelete.value = false
+    deleteGuildId.value = 0
+}
+function openDeleteContext(evt: PointerEvent, guildId: number) {
+    evt.preventDefault()
+    showContextDelete.value = !showContextDelete.value
+    elementTopPosition.value = evt.pageX
+    deleteGuildId.value = guildId
+    
+}
+
+async function deleteGuild() {
+    await fetch(`https://localhost:7266/api/guilds/${deleteGuildId.value}`, {
+        headers: {
+            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
+        },
+        method: 'DELETE'
+    })
+    await getGuilds()
+}
+
 </script>
 
 <template>
@@ -66,7 +93,9 @@ async function selectGuild(id: number) {
         <hr />
         
         <span
+            :oncontextmenu="(evt: PointerEvent) => openDeleteContext(evt, guild.id)"
             @click="selectGuild(guild.id)"
+            :data-id="guild.id"
             class="p-1 rounded-sm hover:bg-[#E1E2FF] hover:cursor-pointer"
             :class="{active: guild.id === appStore.selectedGuild}"
             v-for="guild in guilds"
@@ -74,6 +103,15 @@ async function selectGuild(id: number) {
         >
             {{ guild.name }}
         </span>
+        <div
+            @mouseleave="onMouseLeave"
+            v-if="showContextDelete"
+            class="bg-red-200 hover:bg-red-300 font-semibold p-2 absolute rounded-lg hover:cursor-pointer shadow-md z-10"
+            :style="{top: `${elementTopPosition}px`}"
+            @click="deleteGuild"
+        >
+            <span class="text-red-600 text-center">Deletar o servidor</span>
+        </div>
       </section>
 </template>
 
