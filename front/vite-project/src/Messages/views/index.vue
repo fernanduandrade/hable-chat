@@ -13,6 +13,11 @@ const text = ref('')
 const { messages, hubConnection, selectedChannel, channelName } = storeToRefs(appStore)
 
 async function sendMessage(selectedChannel: number, content: string) {
+  if(!content)
+    return
+  
+  const tempId = Math.floor(Math.random() * 9999)
+  messages.value.push({ id: tempId, user, content, created: new Date().toString() })
   const response = await fetch(`https://localhost:7266/api/channels/${selectedChannel}/messages`, {
       headers: {
           'Content-Type': 'application/json',

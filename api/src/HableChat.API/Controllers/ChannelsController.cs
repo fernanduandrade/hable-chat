@@ -42,7 +42,7 @@ public class ChannelsController : BaseController
     }
 
     [HttpGet("{id}/messages")]
-    public async Task<IActionResult> ChannelMessages([FromRoute] long id, [FromQuery] int limit = 99999)
+    public async Task<IActionResult> ChannelMessages([FromRoute] long id, [FromQuery] int limit = 50)
     {
         
         var query = new GetChannelMessagesQuery(id, limit);

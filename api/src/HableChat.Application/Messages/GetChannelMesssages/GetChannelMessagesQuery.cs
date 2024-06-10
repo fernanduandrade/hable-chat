@@ -14,7 +14,7 @@ public class GetChannelMessagesQueryHandler(IMessageRepository repository) : IRe
             .Get(x => x.ChannelId == request.id)
             .Include(x => x.User)
             .Take(request.Limit)
-            .OrderBy(x => x.Created);
+            .OrderByDescending(x => x.Created);
     
         return Task.FromResult(records.AsEnumerable());
     }

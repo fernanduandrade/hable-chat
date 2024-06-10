@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import VInput from '../../common/components/VInput.vue'
-import { markRaw, ref, watch } from 'vue' 
+import { markRaw, ref, watch, computed } from 'vue' 
 import useApplicationStore from '../../stores/index'
 import { storeToRefs } from 'pinia'
 import { Channel, Message } from '../../types';
@@ -12,7 +12,7 @@ const user = JSON.parse(sessionStorage.getItem('user') || '')
 const appStore = useApplicationStore()
 const modal = useModal()
 
-const { channels, messages } = storeToRefs(appStore)
+const { channels } = storeToRefs(appStore)
 const { modalEmitValue } = storeToRefs(modal)
 const search = ref('')
 async function getChannels() {
@@ -27,6 +27,10 @@ async function getChannels() {
     appStore.setChannel(channels) 
 }
 
+const searchChannels = computed(() => {
+  return channels.value.filter(x => x.name.toLowerCase().includes(search.value.toLowerCase()))
+})
+
 async function getChannelMessages() {
   const currentChannel = appStore.selectedChannel
   const response = await fetch(`https://localhost:7266/api/channels/${currentChannel}/messages`, {
@@ -37,8 +41,6 @@ async function getChannelMessages() {
 
     const messages = await response.json() as Message[]
     appStore.setMessages(messages)
-    const messageContainer = document.getElementById('messageContainer')
-    messageContainer!.scrollTop = messageContainer!.scrollHeight;
 }
 
 async function joinChannel(userName: string, channelId: number, userId: string) {
@@ -46,13 +48,7 @@ async function joinChannel(userName: string, channelId: number, userId: string) 
         .withUrl("https://localhost:7266/messages", { withCredentials: false })
         .build();
 
-
-        connection.on("JoinSpecificChannel", (userName) => {
-            console.log(`msg: ${userName} entrou no chat`);
-        });
-
-        connection.on("RecieveSpecificMessage", (_: string, message: string, user: any) => {
-            messages.value.push({ id: Math.floor(Math.random() * 9999), user, content: message, created: new Date().toDateString() })
+        connection.on("RecieveSpecificMessage", ({}) => {
             const messageContainer = document.getElementById('messageContainer')
             messageContainer!.scrollTop = messageContainer!.scrollHeight;
         });
@@ -79,6 +75,8 @@ async function selectChannel(channel: Channel) {
   appStore.setChannelName(channel.name)
   await joinChannel(user.name, channel.id, user.id)
   await getChannelMessages()
+  const messageContainer = document.getElementById('messageContainer')
+    messageContainer!.scrollTop = messageContainer!.scrollHeight
 }
 
 watch(modalEmitValue, async _ => {
@@ -102,7 +100,7 @@ watch(modalEmitValue, async _ => {
         <div class="text-black font-semibold flex flex-col p2 gap-3">
           <span
             @click="selectChannel(channel)"
-            v-for="channel in channels"
+            v-for="channel in searchChannels"
             :key="channel.id"
             class="p-1 rounded-sm hover:bg-gray-100 hover:cursor-pointer"
             :class="[{active: channel.id === appStore.selectedChannel}]"
