@@ -36,7 +36,9 @@ async function getChannelMessages() {
   })
 
     const messages = await response.json() as Message[]
-    appStore.setMessages(messages) 
+    appStore.setMessages(messages)
+    const messageContainer = document.getElementById('messageContainer')
+    messageContainer!.scrollTop = messageContainer!.scrollHeight;
 }
 
 async function joinChannel(userName: string, channelId: number, userId: string) {
@@ -52,7 +54,7 @@ async function joinChannel(userName: string, channelId: number, userId: string) 
         connection.on("RecieveSpecificMessage", (_: string, message: string, user: any) => {
             messages.value.push({ id: Math.floor(Math.random() * 9999), user, content: message, created: new Date().toDateString() })
             const messageContainer = document.getElementById('messageContainer')
-            messageContainer!.scrollIntoView(false)
+            messageContainer!.scrollTop = messageContainer!.scrollHeight;
         });
 
         await connection.start()
@@ -60,14 +62,22 @@ async function joinChannel(userName: string, channelId: number, userId: string) 
         appStore.setConnection(connection)
 }
 
+async function leaveChannel(channelId: number) {
+  appStore.hubConnection?.invoke('LeaveChannel', { userName: '', channelId: channelId.toString(), userId: ''})
+}
+
+
 function createChannel() {
     modal.open({ component: markRaw(CreateForm), props: { guildId: appStore.selectedGuild },  title: 'Crie um canal' })
 }
 
 async function selectChannel(channel: Channel) {
+  if(appStore.selectedChannel > 0 && appStore.selectedChannel !== channel.id) {
+    leaveChannel(channel.id)
+  }
   appStore.setChannelId(channel.id)
   appStore.setChannelName(channel.name)
-  await joinChannel(user.Name, channel.id, user.id)
+  await joinChannel(user.name, channel.id, user.id)
   await getChannelMessages()
 }
 

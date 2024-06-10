@@ -23,6 +23,13 @@ public class ChannelHub(SharedChannel sharedChannel, UserManager<User> userNamag
             .Group(connection.ChannelId.ToString())
             .SendAsync("JoinSpecificChannel", connection.UserName);
     }
+
+    public async Task LeaveChannel(UserConnection connection)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, connection.ChannelId);
+        sharedChannel.connections.TryRemove(Context.ConnectionId, out _); 
+    }
+
     public async Task SendMessage(string message)
     {
         if(sharedChannel.connections.TryGetValue(Context.ConnectionId, out UserConnection connection))

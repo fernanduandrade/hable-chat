@@ -1,24 +1,15 @@
 using HableChat.API.Controllers.Base;
-using HableChat.Application.Channels.Create;
 using HableChat.Application.Channels.GetById;
 using HableChat.Application.Common.Interfaces;
 using HableChat.Application.Messages.Create;
 using HableChat.Application.Messages.Delete;
 using HableChat.Application.Messages.GetChannelMesssages;
-using HableChat.Infra.Data.HubConnections;
-using HableChat.Infra.Hubs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace HableChat.API.Controllers;
 
 public class ChannelsController : BaseController
 {
-    private readonly IHubContext<ChannelHub> _hubContext;
-    private readonly SharedChannel _sharedChannel;
-
-    public ChannelsController(IHubContext<ChannelHub> hubContext, SharedChannel sharedChannel)
-        => (_hubContext, _sharedChannel) = (hubContext, sharedChannel);
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] GetChannelByIdQuery query)
