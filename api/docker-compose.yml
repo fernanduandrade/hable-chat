@@ -1,0 +1,60 @@
+﻿services:
+#  hablechat.api:
+#    image: hablechat.api
+#    build:
+#      context: .
+#      dockerfile: src/HableChat.API/Dockerfile
+#    ports:
+#      - '8080:8080'
+#      - '8081:8081'
+#    environment:
+#      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire.dashboard:18889
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - DB_CONNECTION=Host=db_hableapp;Port=5432;Database=hable_db;User Id=postgres;Password=postgres
+#      - REDIS_CONNECTIONM=http://aspire.hable:6379
+#    networks:
+#      - otel
+#    depends_on:
+#      - db_hableapp
+  
+  
+  db_hableapp:
+    image: postgres:latest
+    restart: always
+    container_name: db_hableapp
+    ports:
+      - 5432:5432
+    volumes:
+      - database-db-hable-api:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=hable_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - otel
+
+  redis.hable:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    networks:
+      - otel
+
+  aspire.dashboard:
+    image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest
+    container_name: dashboard
+    ports:
+      - 18888:18888
+    networks:
+      - otel
+    volumes:
+      - ./keys/:/home/app/.aspnet/DataProtection-Keys/
+
+volumes:
+  database-db-hable-api:
+  redis-data:
+
+networks:
+  otel:
