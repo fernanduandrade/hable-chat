@@ -68,7 +68,7 @@ function onMouseLeave() {
 function openDeleteContext(evt: PointerEvent, guildId: number) {
     evt.preventDefault()
     showContextDelete.value = !showContextDelete.value
-    elementTopPosition.value = evt.pageX
+    elementTopPosition.value = evt.clientY + 15
     deleteGuildId.value = guildId
     
 }
@@ -82,6 +82,15 @@ async function deleteGuild() {
     })
     await getGuilds()
 }
+
+onMounted(() => {
+    const contextmenu = document.getElementById('contextmenu-guilds')
+    const scope = document.querySelector("body");
+    scope!.addEventListener('click', (evt: any) => {
+        evt.target.offsetParent != contextmenu
+        showContextDelete.value = false
+    })
+})
 
 </script>
 
@@ -106,9 +115,10 @@ async function deleteGuild() {
         <div
             @mouseleave="onMouseLeave"
             v-if="showContextDelete"
-            class="bg-red-200 hover:bg-red-300 font-semibold p-2 absolute rounded-lg hover:cursor-pointer shadow-md z-10"
+            class="bg-white hover:bg-red-300 font-semibold p-2 absolute rounded-lg hover:cursor-pointer shadow-md z-10"
             :style="{top: `${elementTopPosition}px`}"
             @click="deleteGuild"
+            id="contextmenu-guilds"
         >
             <span class="text-red-600 text-center">Deletar o servidor</span>
         </div>

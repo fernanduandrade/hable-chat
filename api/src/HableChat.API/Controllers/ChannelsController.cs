@@ -1,4 +1,5 @@
 using HableChat.API.Controllers.Base;
+using HableChat.Application.Channels.Delete;
 using HableChat.Application.Channels.GetById;
 using HableChat.Application.Common.Interfaces;
 using HableChat.Application.Messages.Create;
@@ -49,6 +50,13 @@ public class ChannelsController : BaseController
 
         var result = await Mediator.Send(query); 
         return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete([FromRoute] DeleteChannelCommand command)
+    {
+        await Mediator.Send(command);
+        return NoContent();
     }
 
     

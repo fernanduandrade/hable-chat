@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import VInput from '../../common/components/VInput.vue'
-import { markRaw, ref, watch, computed } from 'vue' 
+import { markRaw, ref, watch, computed, onMounted } from 'vue' 
 import useApplicationStore from '../../stores/index'
 import { storeToRefs } from 'pinia'
 import { Channel, Message } from '../../types';
@@ -11,8 +11,8 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 const user = JSON.parse(sessionStorage.getItem('user') || '')
 const appStore = useApplicationStore()
 const modal = useModal()
-
-const { channels } = storeToRefs(appStore)
+const showContextDelete = ref(false)
+const { channels, messages } = storeToRefs(appStore)
 const { modalEmitValue } = storeToRefs(modal)
 const search = ref('')
 async function getChannels() {
@@ -48,7 +48,9 @@ async function joinChannel(userName: string, channelId: number, userId: string) 
         .withUrl("https://localhost:7266/messages", { withCredentials: false })
         .build();
 
-        connection.on("RecieveSpecificMessage", ({}) => {
+        connection.on("RecieveSpecificMessage", (username: any, message: any, user: any) => {
+          console.log(username, message, user)
+            messages.value.push({ id: Math.floor(Math.random() * 9998), user, content: message, created: new Date().toString() })
             const messageContainer = document.getElementById('messageContainer')
             messageContainer!.scrollTop = messageContainer!.scrollHeight;
         });
@@ -82,6 +84,41 @@ async function selectChannel(channel: Channel) {
 watch(modalEmitValue, async _ => {
   await getChannels()
 })
+
+const elementTopPosition = ref(0)
+const deleteChannelId = ref(0)
+
+function openDeleteContext(evt: PointerEvent, channelId: number) {
+    evt.preventDefault()
+    showContextDelete.value = !showContextDelete.value
+    elementTopPosition.value = evt.clientY + 15
+    deleteChannelId.value = channelId
+    
+}
+
+function onMouseLeave() {
+  showContextDelete.value = false
+}
+
+onMounted(() => {
+  const contextmenu = document.getElementById('contextmenu-channels')
+    const scope = document.querySelector("body");
+    scope!.addEventListener('click', (evt: any) => {
+        evt.target.offsetParent != contextmenu
+        showContextDelete.value = false
+    })
+})
+async function deleteChannel() {
+  await fetch(`https://localhost:7266/api/channels/${deleteChannelId.value}`, {
+        headers: {
+            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
+        },
+        method: 'DELETE'
+    })
+  await getChannels()
+}
+
+
 </script>
 
 <template>
@@ -99,6 +136,7 @@ watch(modalEmitValue, async _ => {
 
         <div class="text-black font-semibold flex flex-col p2 gap-3">
           <span
+            :oncontextmenu="(evt: PointerEvent) => openDeleteContext(evt, channel.id)"
             @click="selectChannel(channel)"
             v-for="channel in searchChannels"
             :key="channel.id"
@@ -107,6 +145,16 @@ watch(modalEmitValue, async _ => {
           >
             #{{ channel.name }}
           </span>
+        </div>
+        <div
+            @mouseleave="onMouseLeave"
+            v-if="showContextDelete"
+            class="bg-white hover:bg-red-300 font-semibold p-2 absolute rounded-lg hover:cursor-pointer shadow-md z-10"
+            :style="{top: `${elementTopPosition}px`}"
+            @click="deleteChannel"
+            id="contextmenu-channels"
+        >
+            <span class="text-red-600 text-center">Deletar o canal</span>
         </div>
 
       </section>

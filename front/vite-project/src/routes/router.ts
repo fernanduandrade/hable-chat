@@ -15,10 +15,14 @@ router.beforeEach((to, from, next) => {
     const getUser = sessionStorage.getItem('user')
     const getToken = sessionStorage.getItem('token')
     const isAuthenticate = getUser && getToken
-    if (!isAuthenticate &&to.name !== 'login' && to.name !== 'register') {
+    if (!isAuthenticate && to.name !== 'login' && to.name !== 'register') {
         next({ name: 'login' })
     }
 
+    if(isAuthenticate && to.name === 'login')
+        next({name: 'index'})
+    else if(isAuthenticate && to.name === 'register')
+        next({name: 'index'})
     else next()
 })
 

@@ -20,6 +20,11 @@ public class ChannelRepository : IChannelRepository
         _baseRepository.Add(entity);
     }
 
+    public async Task Delete(long id)
+    {
+        await _baseRepository.Delete(id);
+    }
+
     public IQueryable<Channel> Get(Expression<Func<Channel, bool>> filter = null)
     {
         return _baseRepository.Get(filter);

@@ -17,6 +17,7 @@ const cssClasses = computed(() => {
 
   return classes
 })
+
 </script>
 
 <template>
