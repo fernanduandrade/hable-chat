@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
         _mediator= mediator;
         _auditableEntitySaveChangesInterceptor= auditableEntitySaveChangesInterceptor;
         _publishDomainEventsInterceptor = publishDomainEventsInterceptor;
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
     }
 
     public DbSet<Channel> Channels => Set<Channel>();

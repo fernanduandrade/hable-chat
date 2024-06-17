@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VInput from '../../common/components/VInput.vue'
 import VButton from '../../common/components/VButton.vue'
+import useFetch from '../../composables/useFetch';
 
 const form = reactive({
     email: '',
@@ -15,19 +16,9 @@ const form = reactive({
 const router = useRouter()
 const registerError = ref('')
 const register = async () => {
-    const response = await fetch('https://localhost:7266/api/auth/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(form)
-    })
+    const { fetchData } = useFetch<any>('https://localhost:7266/api/auth/login', { method: 'POST', body: JSON.stringify(form)})
+    await fetchData()
 
-    if(!response.ok) {
-        const result = await response.json()
-        registerError.value =result.message
-        return 
-    }
     
     router.push({ name: 'login' })
     

@@ -4,7 +4,8 @@ import { storeToRefs } from 'pinia'
 import useApplicationStore from '../../stores/index'
 import useModal from '../../composables/useModal'
 import CreateForm from '../components/CreateForm.vue'
-import { Channel } from '../../types'
+import { Channel, Guild } from '../../types'
+import useFetch from '../../composables/useFetch'
 
 const modal = useModal()
 const appStore = useApplicationStore()
@@ -13,13 +14,10 @@ const { guilds } = storeToRefs(appStore)
 const showContextDelete = ref(false)
 const deleteGuildId = ref(0)
 const getGuilds = async() => {
-    const response = await fetch('https://localhost:7266/api/guilds', {
-        headers: {
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        }
-    })
+    const { data, fetchData } = useFetch<Array<Guild>>('https://localhost:7266/api/guilds')
+    await fetchData() 
 
-    const result = await response.json()
+    const result = data.value!
     appStore.setGuilds(result)
 }
 
@@ -39,14 +37,11 @@ const elementTopPosition = ref(0)
 
 async function getChannels() {
     const guildId = appStore.selectedGuild
-    const response = await fetch(`https://localhost:7266/api/guilds/${guildId}/channels`, {
-        headers: {
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        }
-    })
+    const { data, fetchData } = useFetch<Array<Channel>>(`https://localhost:7266/api/guilds/${guildId}/channels`)
+    await fetchData()
 
-    const channels = await response.json()
-    appStore.setChannel(channels as Channel[])
+    const channels = data.value!
+    appStore.setChannel(channels)
 }
 
 function resetGuild() {
@@ -74,12 +69,10 @@ function openDeleteContext(evt: PointerEvent, guildId: number) {
 }
 
 async function deleteGuild() {
-    await fetch(`https://localhost:7266/api/guilds/${deleteGuildId.value}`, {
-        headers: {
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        },
+    const { fetchData } = useFetch(`https://localhost:7266/api/guilds/${deleteGuildId.value}`, {
         method: 'DELETE'
     })
+    await fetchData()
     await getGuilds()
 }
 

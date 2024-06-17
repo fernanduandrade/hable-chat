@@ -7,6 +7,7 @@ import { Channel, Message } from '../../types';
 import useModal from '../../composables/useModal';
 import CreateForm from '../../Channels/components/CreateForm.vue';
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import useFetch from '../../composables/useFetch';
 
 const user = JSON.parse(sessionStorage.getItem('user') || '')
 const appStore = useApplicationStore()
@@ -17,13 +18,10 @@ const { modalEmitValue } = storeToRefs(modal)
 const search = ref('')
 async function getChannels() {
   const guildId = appStore.selectedGuild
-  const response = await fetch(`https://localhost:7266/api/guilds/${guildId}/channels`, {
-      headers: {
-          Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-      }
-  })
+  const { data, fetchData: fetchChannels } = useFetch<Array<Channel>>(`https://localhost:7266/api/guilds/${guildId}/channels`)
+  await fetchChannels()
 
-    const channels = await response.json() as Channel[]
+    const channels = data.value!
     appStore.setChannel(channels) 
 }
 
@@ -33,13 +31,12 @@ const searchChannels = computed(() => {
 
 async function getChannelMessages() {
   const currentChannel = appStore.selectedChannel
-  const response = await fetch(`https://localhost:7266/api/channels/${currentChannel}/messages`, {
-      headers: {
-          Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-      }
-  })
 
-    const messages = await response.json() as Message[]
+  const { data, fetchData } = useFetch<Array<Message>>(`https://localhost:7266/api/channels/${currentChannel}/messages`)
+  await fetchData()
+
+
+    const messages = data.value!
     appStore.setMessages(messages)
 }
 
@@ -109,12 +106,8 @@ onMounted(() => {
     })
 })
 async function deleteChannel() {
-  await fetch(`https://localhost:7266/api/channels/${deleteChannelId.value}`, {
-        headers: {
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        },
-        method: 'DELETE'
-    })
+  const { fetchData } = useFetch(`https://localhost:7266/api/channels/${deleteChannelId.value}`, { method: 'DELETE'})
+  await fetchData()
   await getChannels()
 }
 

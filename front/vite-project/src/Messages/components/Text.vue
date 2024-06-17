@@ -3,6 +3,7 @@ import { PropType, computed, onMounted, ref } from 'vue';
 import Avatar from '../../common/components/Avatar.vue'
 import { Message } from '../../types/index'
 import useApplicationStore from '../../stores/index'
+import useFetch from '../../composables/useFetch';
 
 const appStore = useApplicationStore()
 const props = defineProps({
@@ -49,12 +50,10 @@ onMounted(() => {
   })
 })
 async function deleteMessage() {
-  await fetch(`https://localhost:7266/api/channels/${appStore.selectedChannel}/messages/${props.message.id}`, {
-    headers: {
-      Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-    },
+  const { fetchData } = useFetch(`https://localhost:7266/api/channels/${appStore.selectedChannel}/messages/${props.message.id}`, {
     method: 'DELETE'
   })
+  fetchData()
 }
 
 </script>

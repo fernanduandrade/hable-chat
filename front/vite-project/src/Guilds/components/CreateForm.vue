@@ -3,24 +3,22 @@ import { reactive } from 'vue';
 import useModal from '../../composables/useModal'
 import VButton from '../../common/components/VButton.vue'
 import VInput from '../../common/components/VInput.vue'
+import useFetch from '../../composables/useFetch';
 const modal = useModal()
 
 const form = reactive({
-    name: ''
+  name: ''
 })
 
 async function createGuild() {
-    const response = await fetch('https://localhost:7266/api/guilds', {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        },
-        method: 'POST',
-        body: JSON.stringify(form)
-    })
-    const guild = await response.json()
-    modal.setFormValue(guild)
-    modal.close()
+  const { data, fetchData } = useFetch('https://localhost:7266/api/guilds', {
+    method: 'POST',
+    body: JSON.stringify(form)
+  })
+  await fetchData()
+  const guild = data.value
+  modal.setFormValue(guild)
+  modal.close()
 }
 
 </script>
@@ -36,7 +34,7 @@ async function createGuild() {
       <VButton :transparent="true" @click="modal.close">
         Cancelar
       </VButton>
-      <VButton  @click="createGuild">
+      <VButton @click="createGuild">
         Cadastrar
       </VButton>
     </div>
@@ -44,7 +42,6 @@ async function createGuild() {
 </template>
 
 <style scoped>
-
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -56,5 +53,4 @@ async function createGuild() {
   flex-direction: column;
   gap: 1.4rem;
 }
-
 </style>

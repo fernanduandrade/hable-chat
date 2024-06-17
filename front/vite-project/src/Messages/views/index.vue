@@ -5,6 +5,7 @@ import VButton from '../../common/components/VButton.vue'
 import Text from '../components/Text.vue';
 import { storeToRefs } from 'pinia'
 import useApplicationStore from '../../stores/index'
+import useFetch from '../../composables/useFetch';
 
 const user = JSON.parse(sessionStorage.getItem('user') || '')
 const appStore = useApplicationStore()
@@ -17,19 +18,14 @@ async function sendMessage(selectedChannel: number, content: string) {
 
   const tempId = Math.floor(Math.random() * 9999)
   messages.value.push({ id: tempId, user, content, created: new Date().toString() })
-  const response = await fetch(`https://localhost:7266/api/channels/${selectedChannel}/messages`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-    },
+  const { fetchData } = useFetch(`https://localhost:7266/api/channels/${selectedChannel}/messages`, {
     method: 'POST',
     body: JSON.stringify({ content })
   })
-  if (response.ok) {
-    const messageIndex = messages.value.findIndex(x => x.id === tempId)
-    messages.value.splice(messageIndex, 0)
-    hubConnection.value!.invoke('SendMessage', content)
-  }
+  await fetchData()
+  const messageIndex = messages.value.findIndex(x => x.id === tempId)
+  messages.value.splice(messageIndex, 0)
+  hubConnection.value!.invoke('SendMessage', content)
 }
 
 function clearInput(evt: string) {

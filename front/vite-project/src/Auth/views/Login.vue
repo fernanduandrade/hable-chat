@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import VInput from '../../common/components/VInput.vue'
 import VButton from '../../common/components/VButton.vue'
 import userApplicationStore from '../../stores/index'
+import useFetch from '../../composables/useFetch'
 const form = reactive({
     email: '',
     password: ''
@@ -11,24 +12,14 @@ const form = reactive({
 
 const appStore = userApplicationStore()
 const router = useRouter()
-
 const loginErrorMessage = ref('')
 const login = async () => {
-    const respose = await fetch('https://localhost:7266/api/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(form)
-    })
+    const { data, fetchData } = useFetch<any>('https://localhost:7266/api/auth/login', { method: 'POST', body: JSON.stringify(form)})
+    await fetchData()
 
-    if(!respose.ok) {
-        loginErrorMessage.value = 'Email ou senha incorretos'
-        return
-    }
-
-    const result = await respose.json()
+    const result = data.value
     sessionStorage.setItem('token', JSON.stringify(result.token))
+    sessionStorage.setItem('refreshToken', JSON.stringify(result.refreshToken))
     sessionStorage.setItem('user', JSON.stringify(result.user))
     appStore.setUser(result.user)
     loginErrorMessage.value = ''

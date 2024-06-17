@@ -56,7 +56,7 @@ import VModal from './common/components/VModal.vue'
     background-color: #F9FAFE;
     width: 100vw;
     height: 100vh;
-    @apply grid place-content-center
+    @apply grid place-content-center text-black
 }
 
 body {
@@ -77,6 +77,6 @@ body {
 }
 
 .boxes {
-  @apply bg-[#FFFFF] border border-gray-200 p-2 shadow-sm rounded-2xl h-full flex flex-col gap-3 overflow-y-auto
+  @apply resize-x bg-[#FFFFF] border border-gray-200 p-2 shadow-sm rounded-2xl h-full flex flex-col gap-3 overflow-y-auto
 }
 </style>

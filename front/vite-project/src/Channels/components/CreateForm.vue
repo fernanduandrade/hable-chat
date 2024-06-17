@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 import useModal from '../../composables/useModal'
 import VButton from '../../common/components/VButton.vue'
 import VInput from '../../common/components/VInput.vue'
+import useFetch from '../../composables/useFetch';
 const modal = useModal()
 
 const props = defineProps({
@@ -16,15 +17,12 @@ const form = reactive({
 })
 
 async function createChannel() {
-    const response = await fetch(`https://localhost:7266/api/guilds/${props.guildId}/channels`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${JSON.parse(sessionStorage.getItem('token') || '')}`
-        },
+    const { data, fetchData } = useFetch(`https://localhost:7266/api/guilds/${props.guildId}/channels`, {
         method: 'POST',
         body: JSON.stringify(form)
     })
-    const guild = await response.json()
+    await fetchData()
+    const guild = data.value!
     modal.setFormValue(guild)
     modal.close()
 }
